@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "serve -s _static -l tcp://0.0.0.0:${PORT:-8080} -n",
     "lint": "next lint"
   },
   "dependencies": {
