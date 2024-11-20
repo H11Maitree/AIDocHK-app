@@ -1,7 +1,8 @@
 import { alpha, Box } from "@mui/material";
+import Image from "next/image";
 
 interface BubbleProps {
-    text: string|null;
+    text: string | null;
     color: string;
 }
 
@@ -15,19 +16,30 @@ function Bubble({ text, color }: BubbleProps) {
     );
 }
 
-function BotBubble({ text }: { text: string|null }) {
+function BotBubble({ text, showProfilePic = true }: { text: string | null, showProfilePic?: boolean }) {
     return (
         <Box display={'flex'}
             justifyContent={'flex-start'}
             alignItems={'flex-start'}
             flexDirection={'row'}
-            paddingRight={8}>
+            paddingRight={8}
+            gap={1}>
+            <Image
+                src="/spencer-ai-pic.jpeg"
+                width={50}
+                height={50}
+                alt="Spensor AI"
+                style={{
+                    borderRadius: '50%',
+                    visibility: showProfilePic ? 'visible' : 'hidden'
+                }}
+            />
             <Bubble text={text} color="#009CDF" />
         </Box>
     );
 }
 
-function HumanBubble({ text }: { text: string|null }) {
+function HumanBubble({ text }: { text: string | null }) {
     return (
         <Box display={'flex'}
             justifyContent={'flex-end'}

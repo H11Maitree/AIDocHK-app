@@ -1,8 +1,10 @@
 "use client";
 import { SendAltFilled } from "@carbon/icons-react";
-import { Box, Container, IconButton, InputBase, Typography } from "@mui/material";
+import { Box, Container, InputBase, Typography } from "@mui/material";
 import ChatThread, { ChatChain, Role } from "./ChatThread";
 import { useState } from "react";
+import Image from "next/image";
+import { LoadingButton } from "@mui/lab";
 
 // const exampleChatChain: ChatChain = [
 //   {
@@ -20,18 +22,17 @@ import { useState } from "react";
 // ]
 
 export default function Home() {
-  const [chatChain, setChatChain] = useState<ChatChain>([{role: Role.BOT, text: "Hello, Im Doctor Spencer!"}, {role: Role.BOT, text: "What's kind of sick are you today?"}]); // Current chat history
+  const [chatChain, setChatChain] = useState<ChatChain>([{ role: Role.BOT, text: "Hello, Im Doctor Spencer!" }, { role: Role.BOT, text: "What's kind of sick are you today?" }]); // Current chat history
   const [input, setInput] = useState<string>(''); // User input field
+  const [isBotReplying, setIsBotReplying] = useState<boolean>(false);
 
-  // Send a message to the API and stream the response
   const sendMessage = async (message: string) => {
+    setIsBotReplying(true);
     setInput("");
-    // Add the user message to the chat history
     const newChatChain = [...chatChain, { role: Role.USER, text: message }];
     setChatChain(newChatChain); // Update the chat thread UI
 
     try {
-      // Call the API route and send the current chat history
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -50,7 +51,7 @@ export default function Home() {
       let done = false;
       let text = '';
 
-      const newerChatChain = [...newChatChain, { role: Role.BOT, text: null}]
+      const newerChatChain = [...newChatChain, { role: Role.BOT, text: null }]
       setChatChain(newerChatChain);
 
       // Continuously read from the stream until done
@@ -61,34 +62,43 @@ export default function Home() {
         const payload = decoder.decode(value, { stream: true });
         if (payload) {
           const cleanPayload = payload.replaceAll("data: ", '');
-          const chunks = cleanPayload.split("\n").filter((chunk)=> !( !chunk || chunk.trim()=="[DONE]"))
+          const chunks = cleanPayload.split("\n").filter((chunk) => !(!chunk || chunk.trim() == "[DONE]"))
           for (const chunk of chunks) {
             try {
               const parsedData = JSON.parse(chunk);
               if (parsedData?.choices?.[0]?.delta?.content) {
-                text += parsedData.choices[0].delta.content; 
-                setChatChain([...newChatChain, { role: Role.BOT, text: text}]);
+                text += parsedData.choices[0].delta.content;
+                setChatChain([...newChatChain, { role: Role.BOT, text: text }]);
               }
             }
             catch (error) {
               console.error('Error parsing chunk:', chunk, error);
             }
           }
-          
+
         }
       }
     } catch (error) {
       console.error('Error:', error);
     }
+    setIsBotReplying(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && input.trim() !== '' && !isBotReplying) {
+      sendMessage(input);
+      e.preventDefault();
+    }
   };
 
   return (
     <Container
-      maxWidth="xs"
+      maxWidth="sm"
       sx={{
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
+        maxHeight: '-webkit-fill-available',
         padding: 0,
       }}
     >
@@ -97,9 +107,9 @@ export default function Home() {
         top={0}
         padding={2}
         sx={{
-          zIndex: 1000,       // Ensure it stays above other content
-          // backgroundColor: 'white', // Add background to avoid content bleeding when scrolled
+          zIndex: 1000,
           borderBottom: '1px solid #ddd',
+          backgroundColor: 'var(--background)',
         }}
       >
         <Typography variant="h6"><strong>AIDoc</strong>HK</Typography>
@@ -110,6 +120,40 @@ export default function Home() {
         overflow={'auto'}
         padding={'2'}
       >
+        {!chatChain.some((element) => element.role === Role.USER) &&
+          <Box
+            display={'flex'}
+            justifyContent={'space-around'}
+            py={2}
+          >
+            <Box
+              display={'flex'}
+              maxWidth={300}
+              flexDirection={'column'}
+              alignItems={'center'}
+            >
+              <Typography variant="subtitle2">
+                Today&apos;s AI doctor on duty
+              </Typography>
+              <Image
+                src="/spencer-ai-pic.jpeg"
+                width={150}
+                height={150}
+                alt="Spensor AI"
+                style={{
+                  borderRadius: '50%',
+                  paddingTop: 8
+                }}
+              />
+              <Typography paddingY={1}>
+                Doctor <strong>Spenser</strong>
+              </Typography>
+              <Typography variant="body2">
+                <strong>General Practice</strong>, spacialist in College Student Mental Health
+              </Typography>
+            </Box>
+          </Box>
+        }
         <ChatThread chatChain={chatChain} />
       </Box>
       <Box
@@ -127,11 +171,12 @@ export default function Home() {
           sx={{ flexGrow: 1, ml: 1 }}
           placeholder="I have a back pain!"
           value={input}
-          onChange={(e) => setInput(e.target.value)} // Update input state
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
-        <IconButton onClick={() => sendMessage(input)}>
+        <LoadingButton loading={isBotReplying} onClick={() => sendMessage(input)} disabled={input.trim() === ''}>
           <SendAltFilled />
-        </IconButton>
+        </LoadingButton>
       </Box>
     </Container>
   );
