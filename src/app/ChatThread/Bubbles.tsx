@@ -22,7 +22,7 @@ function BotBubble({ text, showProfilePic = true }: { text: string | null, showP
             justifyContent={'flex-start'}
             alignItems={'flex-start'}
             flexDirection={'row'}
-            paddingRight={8}
+            paddingRight={4}
             gap={1}>
             <Image
                 src="/spencer-ai-pic.jpeg"
@@ -45,7 +45,7 @@ function HumanBubble({ text }: { text: string | null }) {
             justifyContent={'flex-end'}
             alignItems={'flex-start'}
             flexDirection={'row'}
-            paddingLeft={8}>
+            paddingLeft={4}>
             <Bubble text={text} color="#973999" />
         </Box>
     );
