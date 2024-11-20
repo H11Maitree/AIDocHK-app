@@ -26,7 +26,7 @@ export default function ChatThread({ chatChain, autoScroll, setAutoScroll }: Cha
     const chatEndRef = useRef<HTMLDivElement | null>(null);
 
     const scrollToBottom = () => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        chatEndRef.current?.scrollIntoView({ behavior: 'auto' });
     };
 
     useEffect(() => {
