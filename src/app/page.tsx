@@ -2,7 +2,7 @@
 import { SendAltFilled } from "@carbon/icons-react";
 import { Box, Container, InputBase, Typography } from "@mui/material";
 import ChatThread, { ChatChain, Role } from "./ChatThread";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { LoadingButton } from "@mui/lab";
 
@@ -23,8 +23,18 @@ import { LoadingButton } from "@mui/lab";
 
 export default function Home() {
   const [chatChain, setChatChain] = useState<ChatChain>([{ role: Role.BOT, text: "Hello, Im Doctor Spencer!" }, { role: Role.BOT, text: "What's kind of sick are you today?" }]); // Current chat history
-  const [input, setInput] = useState<string>(''); // User input field
+  const [input, setInput] = useState<string>(''); 
   const [isBotReplying, setIsBotReplying] = useState<boolean>(false);
+
+  const scrollBoxRef = useRef<HTMLDivElement | null>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
+
+  const handleScroll = () => {
+    if (!scrollBoxRef.current) return;
+    const { scrollHeight, scrollTop, clientHeight } = scrollBoxRef.current;
+    const isNearBottom = scrollHeight - scrollTop <= clientHeight + 25;
+    setAutoScroll(isNearBottom);
+};
 
   const sendMessage = async (message: string) => {
     setIsBotReplying(true);
@@ -119,6 +129,8 @@ export default function Home() {
         flexGrow={1}
         overflow={'auto'}
         padding={'2'}
+        ref={scrollBoxRef}
+        onScroll={handleScroll}
       >
         {!chatChain.some((element) => element.role === Role.USER) &&
           <Box
@@ -154,7 +166,7 @@ export default function Home() {
             </Box>
           </Box>
         }
-        <ChatThread chatChain={chatChain} />
+        <ChatThread chatChain={chatChain} scrollBoxRef={scrollBoxRef} autoScroll={autoScroll} setAutoScroll={setAutoScroll}/>
       </Box>
       <Box
         display={'flex'}

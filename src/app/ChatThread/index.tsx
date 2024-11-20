@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Box } from "@mui/material";
 import { BotBubble, HumanBubble } from "./Bubbles";
 
@@ -17,22 +17,16 @@ export type ChatChain = ChatChainElement[];
 
 interface ChatThreadProps {
     chatChain: ChatChain;
+    scrollBoxRef: React.RefObject<HTMLDivElement>;
+    autoScroll: boolean;
+    setAutoScroll: (value: boolean)=>void;
 }
 
-export default function ChatThread({ chatChain }: ChatThreadProps) {
+export default function ChatThread({ chatChain, autoScroll, setAutoScroll }: ChatThreadProps) {
     const chatEndRef = useRef<HTMLDivElement | null>(null);
-    const chatContainerRef = useRef<HTMLDivElement | null>(null);
-    const [autoScroll, setAutoScroll] = useState(true);
 
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    const handleScroll = () => {
-        if (!chatContainerRef.current) return;
-        const { scrollHeight, scrollTop, clientHeight } = chatContainerRef.current;
-        const isNearBottom = scrollHeight - scrollTop <= clientHeight + 25;
-        setAutoScroll(isNearBottom);
     };
 
     useEffect(() => {
@@ -44,17 +38,14 @@ export default function ChatThread({ chatChain }: ChatThreadProps) {
         else if (autoScroll) {
             scrollToBottom();
         }
-    }, [chatChain, autoScroll]);
+    }, [chatChain, autoScroll, setAutoScroll]);
 
     return (
         <Box
-            ref={chatContainerRef}
             display={'flex'}
             flexDirection={'column'}
             py={2}
             px={1}
-            overflow={'auto'}
-            onScroll={handleScroll}
         >
             {chatChain.map((chatChainElement, index) => {
                 const isBot = chatChainElement.role === Role.BOT;
