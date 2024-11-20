@@ -23,18 +23,22 @@ import { LoadingButton } from "@mui/lab";
 
 export default function Home() {
   const [chatChain, setChatChain] = useState<ChatChain>([{ role: Role.BOT, text: "Hello, Im Doctor Spencer!" }, { role: Role.BOT, text: "What's kind of sick are you today?" }]); // Current chat history
-  const [input, setInput] = useState<string>(''); 
+  const [input, setInput] = useState<string>('');
   const [isBotReplying, setIsBotReplying] = useState<boolean>(false);
 
   const scrollBoxRef = useRef<HTMLDivElement | null>(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
+  let lastScrollTop = 0;
   const handleScroll = () => {
     if (!scrollBoxRef.current) return;
-    const { scrollHeight, scrollTop, clientHeight } = scrollBoxRef.current;
-    const isNearBottom = scrollHeight - scrollTop <= clientHeight + 25;
-    setAutoScroll(isNearBottom);
-};
+    const { scrollTop } = scrollBoxRef.current;
+    if (scrollTop < lastScrollTop) {
+      // Scrolling up
+      setAutoScroll(false);
+    }
+    lastScrollTop = scrollTop;
+  };
 
   const sendMessage = async (message: string) => {
     setIsBotReplying(true);
@@ -166,7 +170,7 @@ export default function Home() {
             </Box>
           </Box>
         }
-        <ChatThread chatChain={chatChain} scrollBoxRef={scrollBoxRef} autoScroll={autoScroll} setAutoScroll={setAutoScroll}/>
+        <ChatThread chatChain={chatChain} scrollBoxRef={scrollBoxRef} autoScroll={autoScroll} setAutoScroll={setAutoScroll} />
       </Box>
       <Box
         display={'flex'}
