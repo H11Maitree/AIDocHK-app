@@ -6,21 +6,6 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { LoadingButton } from "@mui/lab";
 
-// const exampleChatChain: ChatChain = [
-//   {
-//     role: Role.BOT,
-//     text: "Hi, How can I help you today?"
-//   },
-//   {
-//     role: Role.USER,
-//     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-//   },
-//   {
-//     role: Role.BOT,
-//     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-//   },
-// ]
-
 export default function Home() {
   const [chatChain, setChatChain] = useState<ChatChain>([{ role: Role.BOT, text: "Hello, Im Doctor Spencer!" }, { role: Role.BOT, text: "What's kind of sick are you today?" }]); // Current chat history
   const [input, setInput] = useState<string>('');
@@ -68,25 +53,30 @@ export default function Home() {
       const newerChatChain = [...newChatChain, { role: Role.BOT, text: null }]
       setChatChain(newerChatChain);
 
-      // Continuously read from the stream until done
+      let previouChunk: string | null = null;
       while (!done) {
         const { value, done: doneReading } = await reader?.read() || {};
         done = doneReading === undefined ? false : doneReading;
 
         const payload = decoder.decode(value, { stream: true });
         if (payload) {
-          const cleanPayload = payload.replaceAll("data: ", '');
-          const chunks = cleanPayload.split("\n").filter((chunk) => !(!chunk || chunk.trim() == "[DONE]"))
+          const dataChunks = payload.split('data:');
+          const chunks = dataChunks
+            .map((chunk) => chunk.replace(/\s*/, '').replace(/\s*$/, ''))
+            .filter((chunk) => !(!chunk || chunk.trim() == "[DONE]"))
           for (const chunk of chunks) {
+            const currrentChunk: string = previouChunk ? previouChunk + chunk : chunk
             try {
-              const parsedData = JSON.parse(chunk);
+              const parsedData = JSON.parse(currrentChunk);
               if (parsedData?.choices?.[0]?.delta?.content) {
                 text += parsedData.choices[0].delta.content;
                 setChatChain([...newChatChain, { role: Role.BOT, text: text }]);
               }
+              previouChunk = null;
             }
             catch (error) {
-              console.error('Error parsing chunk:', chunk, error);
+              previouChunk = currrentChunk;
+              // console.error('Error parsing chunk:', currrentChunk, error);
             }
           }
 
@@ -165,7 +155,7 @@ export default function Home() {
                 Doctor <strong>Spenser</strong>
               </Typography>
               <Typography variant="body2">
-                <strong>General Practice</strong>, spacialist in College Student Mental Health
+                <strong>General Practice</strong>, specialist in College Student Mental Health
               </Typography>
             </Box>
           </Box>
