@@ -74,6 +74,7 @@ export default function Home() {
               }
               previouChunk = null;
             }
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             catch (error) {
               previouChunk = currrentChunk;
               // console.error('Error parsing chunk:', currrentChunk, error);
