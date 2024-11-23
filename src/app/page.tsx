@@ -7,7 +7,7 @@ import Image from "next/image";
 import { LoadingButton } from "@mui/lab";
 
 export default function Home() {
-  const [chatChain, setChatChain] = useState<ChatChain>([{ role: Role.BOT, text: "Hello, Im Doctor Spencer!" }, { role: Role.BOT, text: "What's kind of sick are you today?" }]); // Current chat history
+  const [chatChain, setChatChain] = useState<ChatChain>([{ role: Role.BOT, text: "Hello, Im Doctor Spencer!" }, { role: Role.BOT, text: "What kind of sick are you today?" }]); // Current chat history
   const [input, setInput] = useState<string>('');
   const [isBotReplying, setIsBotReplying] = useState<boolean>(false);
 
